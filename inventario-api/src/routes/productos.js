@@ -21,6 +21,49 @@ router.get("/", async (req, res) => {
   }
 });
 
+// PUT /api/productos/:id → actualizar producto
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { codigo_barra, nombre, marca_id, genero_id, talla, precio, stock } = req.body;
+
+    const [result] = await pool.query(
+      `UPDATE productos 
+       SET codigo_barra=?, nombre=?, marca_id=?, genero_id=?, talla=?, precio=?, stock=? 
+       WHERE id=?`,
+      [codigo_barra, nombre, marca_id, genero_id, talla, precio, stock, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+
+    res.json({ mensaje: "✅ Producto actualizado correctamente" });
+  } catch (err) {
+    console.error("❌ Error en PUT /api/productos/:id:", err);
+    res.status(500).json({ error: err.message || "Error desconocido" });
+  }
+});
+
+// DELETE /api/productos/:id → eliminar producto
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [result] = await pool.query("DELETE FROM productos WHERE id=?", [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+
+    res.json({ mensaje: "✅ Producto eliminado correctamente" });
+  } catch (err) {
+    console.error("❌ Error en DELETE /api/productos/:id:", err);
+    res.status(500).json({ error: err.message || "Error desconocido" });
+  }
+});
+
+
 // POST /api/productos → insertar un nuevo producto
 router.post("/", async (req, res) => {
   try {

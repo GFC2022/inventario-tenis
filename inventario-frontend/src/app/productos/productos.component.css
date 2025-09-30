@@ -1,0 +1,13 @@
+h2 {
+  margin-bottom: 20px;
+  color: #0056b3;
+}
+
+.table th {
+  text-align: center;
+}
+
+.table td {
+  vertical-align: middle;
+}
+

@@ -5,16 +5,12 @@ import { Observable } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-export class ProductosService {
-private apiUrl = '/api/productos';
+export class MarcasService {
+  private apiUrl = '/api/marcas';  // proxy a backend
 
   constructor(private http: HttpClient) {}
 
-  getProductos(): Observable<any[]> {
+  getMarcas(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);
-  }
-
-  addProducto(producto: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, producto);
   }
 }

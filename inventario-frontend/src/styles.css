@@ -1,1 +1,23 @@
 /* You can add global styles to this file, and also import other style files */
+body {
+  background-color: #f0f8ff; /* azul muy claro */
+}
+
+.navbar {
+  background: linear-gradient(to right, #007bff, #66b2ff) !important;
+}
+
+.nav-link {
+  transition: background 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+}
+
+.nav-link.active {
+  font-weight: bold;
+  border-bottom: 2px solid white;
+}
+

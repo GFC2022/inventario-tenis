@@ -3,7 +3,10 @@ import pool from "../config/db.js";
 
 const router = express.Router();
 
-// ✅ define primero la ruta
+/**
+ * GET /api/productos
+ * Listar todos los productos con marca y género
+ */
 router.get("/", async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -12,20 +15,65 @@ router.get("/", async (req, res) => {
       FROM productos p
       LEFT JOIN marcas m ON p.marca_id = m.id
       LEFT JOIN generos g ON p.genero_id = g.id
+      ORDER BY p.id ASC
     `);
     res.json(rows);
   } catch (err) {
-    console.error("❌ Error en /api/productos:", err);  // imprime el objeto completo
-    res.status(500).json({
-      error: err.message || JSON.stringify(err) || "Error desconocido"});
+    console.error("❌ Error en GET /api/productos:", err);
+    res.status(500).json({ error: err.message || "Error desconocido" });
   }
 });
 
-// PUT /api/productos/:id → actualizar producto
+/**
+ * POST /api/productos
+ * Crear un nuevo producto
+ */
+router.post("/", async (req, res) => {
+  try {
+    const { codigo_barra, nombre, marca_id, genero_id, talla, precio, stock } = req.body;
+
+    if (!codigo_barra || !nombre || !marca_id || !genero_id || !talla || !precio) {
+      return res.status(400).json({ error: "Faltan campos obligatorios" });
+    }
+
+    // Validar existencia de marca y género
+    const [marca] = await pool.query("SELECT id FROM marcas WHERE id=?", [marca_id]);
+    if (marca.length === 0) return res.status(400).json({ error: "Marca no válida" });
+
+    const [genero] = await pool.query("SELECT id FROM generos WHERE id=?", [genero_id]);
+    if (genero.length === 0) return res.status(400).json({ error: "Género no válido" });
+
+    const [result] = await pool.query(
+      `INSERT INTO productos (codigo_barra, nombre, marca_id, genero_id, talla, precio, stock)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [codigo_barra, nombre, marca_id, genero_id, talla, precio, stock || 0]
+    );
+
+    res.status(201).json({
+      id: result.insertId,
+      mensaje: "✅ Producto agregado correctamente"
+    });
+  } catch (err) {
+    console.error("❌ Error en POST /api/productos:", err);
+    res.status(500).json({ error: err.message || "Error desconocido" });
+  }
+});
+
+/**
+ * PUT /api/productos/:id
+ * Actualizar un producto
+ */
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { codigo_barra, nombre, marca_id, genero_id, talla, precio, stock } = req.body;
+
+    // Validar existencia de marca y género
+    const [marca] = await pool.query("SELECT id FROM marcas WHERE id=?", [marca_id]);
+    if (marca.length === 0) return res.status(400).json({ error: "Marca no válida" });
+
+    const [genero] = await pool.query("SELECT id FROM generos WHERE id=?", [genero_id]);
+    if (genero.length === 0) return res.status(400).json({ error: "Género no válido" });
 
     const [result] = await pool.query(
       `UPDATE productos 
@@ -45,7 +93,10 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// DELETE /api/productos/:id → eliminar producto
+/**
+ * DELETE /api/productos/:id
+ * Eliminar un producto
+ */
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -63,33 +114,4 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-
-// POST /api/productos → insertar un nuevo producto
-router.post("/", async (req, res) => {
-  try {
-    const { codigo_barra, nombre, marca_id, genero_id, talla, precio, stock } = req.body;
-
-    if (!codigo_barra || !nombre || !marca_id || !genero_id || !talla || !precio) {
-      return res.status(400).json({ error: "Faltan campos obligatorios" });
-    }
-
-    const [result] = await pool.query(
-      `INSERT INTO productos (codigo_barra, nombre, marca_id, genero_id, talla, precio, stock)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [codigo_barra, nombre, marca_id, genero_id, talla, precio, stock || 0]
-    );
-
-    res.status(201).json({
-      id: result.insertId,
-      mensaje: "✅ Producto agregado correctamente"
-    });
-
-  } catch (err) {
-    console.error("❌ Error en POST /api/productos:", err);
-    res.status(500).json({ error: err.message || "Error desconocido" });
-  }
-});
-
-
-// ✅ exporta al final
 export default router;
